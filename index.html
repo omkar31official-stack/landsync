@@ -1,0 +1,1151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>LANDSYNC AI — 3D Property Intelligence</title>
+<meta name="description" content="Next-generation GIS and digital land-record platform. Upload property data, generate 3D models, detect boundary conflicts and verify properties." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="styles/global.css" />
+<link rel="stylesheet" href="styles/screens.css" />
+<link rel="stylesheet" href="styles/components.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body>
+
+<div id="app">
+
+  <!-- ═══════════════════════════════════════════════════════════
+       SHARED TOP NAV
+       ═══════════════════════════════════════════════════════════ -->
+  <nav class="top-nav">
+    <div class="nav-brand">
+      <div class="nav-logo-icon">
+        <svg viewBox="0 0 20 20" fill="none"><path d="M10 2L3 8h14L10 2z" fill="currentColor" opacity="0.9"/><rect x="5" y="8" width="10" height="8" rx="1" stroke="currentColor" stroke-width="1.2" fill="none"/><rect x="8" y="12" width="4" height="4" fill="currentColor" opacity="0.7"/></svg>
+      </div>
+      <div class="nav-brand-text">
+        <span class="nav-brand-name">LANDSYNC AI</span>
+        <span class="nav-brand-sub">3D Property Intelligence</span>
+      </div>
+    </div>
+    <div class="nav-links">
+      <button class="nav-link active" data-screen="dashboard">Project</button>
+      <button class="nav-link" data-screen="dashboard">Properties</button>
+      <button class="nav-link" data-screen="upload">Data Sources</button>
+      <button class="nav-link" data-screen="analysis">Analysis</button>
+      <button class="nav-link" data-screen="verify">Verification</button>
+      <button class="nav-link" data-screen="conflict">Reports</button>
+    </div>
+    <div class="nav-right">
+      <div class="nav-search">
+        <svg viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="5" stroke="currentColor" stroke-width="1.3"/><path d="M11 11l3 3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+        <input type="text" placeholder="Search parcel or address" />
+        <kbd>⌘K</kbd>
+      </div>
+      <button class="nav-icon-btn" title="Help">
+        <svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.2"/><path d="M6.5 6a1.5 1.5 0 113 0c0 1-1.5 1.5-1.5 2.5M8 12h.01" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+      </button>
+      <div class="nav-avatar">AR</div>
+    </div>
+  </nav>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       SCREEN 1: DASHBOARD / PROJECT OVERVIEW
+       ═══════════════════════════════════════════════════════════ -->
+  <div id="screen-dashboard" class="screen active">
+    <!-- Page Header -->
+    <div class="page-header">
+      <div class="page-breadcrumb">
+        <span>EASTBANK RESIDENTIAL VERIFICATION</span>
+        <span class="sep">›</span>
+        <span style="color:var(--text-secondary)">PROJECT OVERVIEW</span>
+      </div>
+      <div class="page-title-row">
+        <div class="page-title-left">
+          <div class="page-title">
+            Property intelligence command center
+            <span class="pid-tag">NB-W4-0187-22</span>
+            <span class="pid-tag">17 Alder Court, Ward 4</span>
+          </div>
+        </div>
+        <div class="page-title-right">
+          <span class="badge badge-teal">OPERATIONAL</span>
+          <div class="jurisdiction-block">
+            <span class="jurisdiction-label">Jurisdiction</span>
+            <span class="jurisdiction-value">Northbridge Municipality</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sub-bar -->
+    <div style="background:var(--bg-surface);border-bottom:1px solid var(--border-subtle);padding:6px 20px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0">
+      <span style="font-size:11px;color:var(--text-muted)">Northbridge Municipal GIS — Secure workspace</span>
+      <span style="font-size:11px;color:var(--text-muted)">Last synchronised 29 Sep 2026 · 14:42 UTC+05:30</span>
+    </div>
+
+    <div class="dashboard-body">
+      <!-- Viewport -->
+      <div class="viewport-wrapper">
+        <div class="viewport-3d-card">
+          <canvas id="canvas-dashboard"></canvas>
+
+          <!-- Top badges -->
+          <div class="vp-top-bar">
+            <div class="vp-badge live"><div class="dot"></div>LIVE 3D MODEL</div>
+            <div class="vp-badge aligned"><div class="dot" style="background:var(--green-500)"></div>SURVEY ALIGNED</div>
+          </div>
+
+          <!-- Zoom controls -->
+          <div class="vp-zoom-controls">
+            <button class="vp-zoom-btn" data-scene="dashboard" data-dir="in" title="Zoom In">+</button>
+            <button class="vp-zoom-btn" data-scene="dashboard" data-dir="out" title="Zoom Out">−</button>
+            <button class="vp-zoom-btn" data-scene="dashboard" data-dir="in" title="Reset" style="border-radius:0" onclick="ThreeScenes.scenes.dashboard && ThreeScenes.scenes.dashboard.controls && ThreeScenes.scenes.dashboard.controls.setView(-0.5, 0.6, 42)">
+              <svg viewBox="0 0 14 14" fill="none" style="width:12px;height:12px"><path d="M2 7a5 5 0 100 0V5M2 5l2-2-2-2" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+            </button>
+            <button class="vp-zoom-btn" title="Fullscreen">
+              <svg viewBox="0 0 14 14" fill="none" style="width:12px;height:12px"><path d="M1 5V2h3M10 2h3v3M1 9v3h3M10 12h3v-3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+            </button>
+          </div>
+
+          <!-- Bottom bar -->
+          <div class="vp-bottom-bar">
+            <div class="vp-address-block">
+              <div class="vp-address-name">17 Alder Court, Ward 4</div>
+              <div class="vp-address-coords">PARCEL NB-W4-0187-22 · 842.6 m² · EPSG:32643 · WGS 84 / UTM 43N</div>
+              <div class="vp-address-icons">
+                <button class="vp-icon-btn" title="Navigate">
+                  <svg viewBox="0 0 12 12" fill="none"><path d="M6 1l2 9-2-2-2 2L6 1z" fill="currentColor"/></svg>
+                </button>
+                <button class="vp-icon-btn" title="Measure">
+                  <svg viewBox="0 0 12 12" fill="none"><path d="M1 10L10 1M3 9L1 10M9 3l1-2" stroke="currentColor" stroke-width="1"/></svg>
+                </button>
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end">
+              <div class="vp-legend">
+                <div class="legend-item"><div class="legend-dot" style="background:#00b4a0"></div>PARCEL BOUNDARY</div>
+                <div class="legend-item"><div class="legend-dot" style="background:#4a8070"></div>BUILDING FOOTPRINT</div>
+                <div class="legend-item" style="color:var(--text-muted)">8 VERTICES</div>
+              </div>
+              <div class="vp-scale-bar">
+                <div class="scale-rule">
+                  <div class="scale-rule-track"><div class="s1"></div><div class="s2"></div><div class="s3"></div></div>
+                </div>
+                <div class="scale-labels"><span>0</span><span>5</span><span>10 m</span></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Viewport loading -->
+          <div id="vp-loading-dashboard" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:var(--bg-base);z-index:20;transition:opacity 0.5s">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:12px">
+              <div style="width:36px;height:36px;border:3px solid var(--border-subtle);border-top-color:var(--teal-500);border-radius:50%;animation:spin 0.8s linear infinite"></div>
+              <span style="font-size:13px;color:var(--text-secondary)">Loading 3D property model…</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent properties -->
+        <div class="recent-properties">
+          <div class="rp-header">
+            <span class="rp-title">Recent properties &amp; activity</span>
+            <a class="rp-link" onclick="App.navigate('dashboard')">View all properties →</a>
+          </div>
+          <div class="rp-list">
+            <div class="rp-row" onclick="App.navigate('conflict')">
+              <div class="rp-row-icon">
+                <svg viewBox="0 0 16 16" fill="none"><path d="M8 2L2 6h12L8 2z" stroke="currentColor" stroke-width="1.1"/><rect x="4" y="6" width="8" height="7" stroke="currentColor" stroke-width="1.1"/></svg>
+              </div>
+              <div class="rp-row-info">
+                <div class="rp-row-name">17 Alder Court, Ward 4</div>
+                <div class="rp-row-pid">NB-W4-0187-22</div>
+              </div>
+              <div class="rp-row-meta">
+                <span class="badge badge-red">CONFLICT DETECTED</span>
+                <span class="rp-row-date">29 Sep · 14:27</span>
+              </div>
+            </div>
+            <div class="rp-row" onclick="App.navigate('dashboard')">
+              <div class="rp-row-icon">
+                <svg viewBox="0 0 16 16" fill="none"><path d="M8 2L2 6h12L8 2z" stroke="currentColor" stroke-width="1.1"/><rect x="4" y="6" width="8" height="7" stroke="currentColor" stroke-width="1.1"/></svg>
+              </div>
+              <div class="rp-row-info">
+                <div class="rp-row-name">42 Meridian Lane, Ward 2</div>
+                <div class="rp-row-pid">NB-W2-0112-09</div>
+              </div>
+              <div class="rp-row-meta">
+                <span class="badge badge-green">VERIFIED</span>
+                <span class="rp-row-date">29 Sep · 12:18</span>
+              </div>
+            </div>
+            <div class="rp-row" onclick="App.navigate('analysis')">
+              <div class="rp-row-icon">
+                <svg viewBox="0 0 16 16" fill="none"><path d="M8 2L2 6h12L8 2z" stroke="currentColor" stroke-width="1.1"/><rect x="4" y="6" width="8" height="7" stroke="currentColor" stroke-width="1.1"/></svg>
+              </div>
+              <div class="rp-row-info">
+                <div class="rp-row-name">8 Riverstone Close, Ward 4</div>
+                <div class="rp-row-pid">NB-W4-0204-71</div>
+              </div>
+              <div class="rp-row-meta">
+                <span class="badge badge-blue">PROCESSING</span>
+                <span class="rp-row-date">27 Sep · 10:06</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Panel -->
+      <div class="right-panel">
+        <div class="property-card">
+          <div class="property-card-label">SELECTED PROPERTY</div>
+          <div class="property-card-name">17 Alder Court, Ward 4</div>
+          <div class="property-card-sub">Northbridge Municipality · Residential R2</div>
+          <div class="property-metrics">
+            <div class="pm-cell">
+              <div class="pm-cell-label">PARCEL</div>
+              <div class="pm-cell-value">842.6 <span class="pm-cell-unit">m²</span></div>
+            </div>
+            <div class="pm-cell">
+              <div class="pm-cell-label">FOOTPRINT</div>
+              <div class="pm-cell-value">214.8 <span class="pm-cell-unit">m²</span></div>
+            </div>
+          </div>
+          <div class="prop-actions">
+            <button class="btn btn-teal" onclick="App.navigate('analysis')" style="font-size:12px;padding:8px">
+              <svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="5" stroke="currentColor" stroke-width="1.3"/><path d="M6 8l2 2 4-4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+              Create Property Analysis
+            </button>
+            <button class="btn btn-ghost" onclick="App.navigate('upload')" style="font-size:12px;padding:8px">
+              <svg viewBox="0 0 16 16" fill="none"><path d="M3 12v2h10v-2M8 2v8M5 5l3-3 3 3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+              Upload Survey Data
+            </button>
+          </div>
+        </div>
+
+        <div class="stats-cards">
+          <div class="stat-card" onclick="App.navigate('dashboard')">
+            <div class="stat-card-icon sc-teal">
+              <svg viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="12" height="12" rx="1.5" stroke="currentColor" stroke-width="1.2"/><path d="M5 8l2 2 4-4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+            </div>
+            <div class="stat-card-body">
+              <div class="stat-card-label">PROPERTIES PROCESSED</div>
+              <div class="stat-card-sub" style="color:var(--teal-500)">+38 this month</div>
+            </div>
+            <div class="stat-card-value">1,284</div>
+          </div>
+          <div class="stat-card" onclick="App.navigate('verify')">
+            <div class="stat-card-icon sc-amber">
+              <svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.2"/><path d="M8 5v3.5M8 11h.01" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+            </div>
+            <div class="stat-card-body">
+              <div class="stat-card-label">PENDING VERIFICATION</div>
+              <div class="stat-card-sub">6 high priority</div>
+            </div>
+            <div class="stat-card-value">18</div>
+          </div>
+          <div class="stat-card" onclick="App.navigate('conflict')">
+            <div class="stat-card-icon sc-red">
+              <svg viewBox="0 0 16 16" fill="none"><path d="M8 3l6 10H2L8 3z" stroke="currentColor" stroke-width="1.2"/><path d="M8 7v3M8 12h.01" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+            </div>
+            <div class="stat-card-body">
+              <div class="stat-card-label">BOUNDARY CONFLICTS</div>
+              <div class="stat-card-sub">2 field checks</div>
+            </div>
+            <div class="stat-card-value" style="color:var(--red-500)">7</div>
+          </div>
+          <div class="stat-card" onclick="App.navigate('upload')">
+            <div class="stat-card-icon sc-blue">
+              <svg viewBox="0 0 16 16" fill="none"><rect x="2" y="4" width="12" height="9" rx="1" stroke="currentColor" stroke-width="1.2"/><path d="M2 7h12" stroke="currentColor" stroke-width="1.2"/><circle cx="5" cy="5.5" r="1" fill="currentColor"/></svg>
+            </div>
+            <div class="stat-card-body">
+              <div class="stat-card-label">DATA SOURCES</div>
+              <div class="stat-card-sub" style="color:var(--green-500)">All connected</div>
+            </div>
+            <div class="stat-card-value">46</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       SCREEN 2: UPLOAD / DATA SOURCES
+       ═══════════════════════════════════════════════════════════ -->
+  <div id="screen-upload" class="screen">
+    <div class="page-header">
+      <div class="page-breadcrumb">
+        <span>EASTBANK RESIDENTIAL VERIFICATION</span>
+        <span class="sep">›</span>
+        <span style="color:var(--text-secondary)">DATA INGESTION</span>
+      </div>
+      <div class="page-title-row">
+        <div class="page-title-left">
+          <div class="page-title">
+            Upload property source data
+            <span class="pid-tag">NB-W4-0187-22</span>
+            <span class="pid-tag">17 Alder Court, Ward 4</span>
+          </div>
+        </div>
+        <div class="page-title-right">
+          <span class="badge badge-teal" id="file-count-badge">● 6 SOURCES ATTACHED</span>
+          <div class="jurisdiction-block">
+            <span class="jurisdiction-label">Jurisdiction</span>
+            <span class="jurisdiction-value">Northbridge Municipality</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="upload-body">
+      <!-- Metadata header -->
+      <div style="display:flex;gap:12px;flex-wrap:wrap">
+        <div class="meta-header-card" style="flex:1">
+          <div class="meta-header-section">
+            <label>Project</label>
+            <span>Eastbank Residential Verification</span>
+          </div>
+          <div class="meta-header-section">
+            <label>Address</label>
+            <span>17 Alder Court, Ward 4</span>
+          </div>
+          <div class="meta-header-section">
+            <label>Parcel ID</label>
+            <span>NB-W4-0187-22</span>
+          </div>
+          <div class="meta-header-section">
+            <label>Jurisdiction</label>
+            <span>Northbridge Municipality</span>
+          </div>
+        </div>
+        <div class="coord-confirm-card">
+          <div class="cc-label">
+            COORDINATE SYSTEM
+            <span class="badge badge-teal" style="font-size:10px">CONFIRMED</span>
+          </div>
+          <div class="cc-crs">EPSG:32643 · WGS 84 / UTM 43N</div>
+          <div class="cc-sub">43N · False easting 500,000 m · Units metres</div>
+        </div>
+      </div>
+
+      <!-- Upload zones -->
+      <div class="upload-zones-section">
+        <div class="uz-section-label">
+          Add source files
+          <span class="uz-section-label-right">Multiple files and concurrent uploads supported</span>
+          <span style="float:right;margin-left:12px;font-size:11px;color:var(--text-muted)">PDF · GEOJSON · SHP · DXF · TIFF · IMAGERY · CSV</span>
+        </div>
+        <div class="upload-zones-grid">
+          <div class="upload-zone" data-type="documents">
+            <div class="uz-icon"><svg viewBox="0 0 20 20" fill="none"><path d="M4 2h8l4 4v12a2 2 0 01-2 2H4a2 2 0 01-2-2V4a2 2 0 012-2z" stroke="currentColor" stroke-width="1.3"/><path d="M12 2v4h4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg></div>
+            <div class="uz-title">Property Documents</div>
+            <div class="uz-formats">PDF</div>
+            <div class="uz-cta">Drop or browse files</div>
+            <input type="file" style="display:none" multiple accept=".pdf,.doc,.docx" />
+          </div>
+          <div class="upload-zone" data-type="cadastral">
+            <div class="uz-icon"><svg viewBox="0 0 20 20" fill="none"><rect x="2" y="2" width="16" height="16" rx="1.5" stroke="currentColor" stroke-width="1.3"/><path d="M2 8h16M8 2v16" stroke="currentColor" stroke-width="1.3"/></svg></div>
+            <div class="uz-title">Cadastral Data</div>
+            <div class="uz-formats">GeoJSON · SHP</div>
+            <div class="uz-cta">Drop or browse files</div>
+            <input type="file" style="display:none" multiple accept=".geojson,.shp,.kml" />
+          </div>
+          <div class="upload-zone" data-type="survey">
+            <div class="uz-icon"><svg viewBox="0 0 20 20" fill="none"><path d="M4 16L16 4M7 15l-3 1M15 7l1-3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><circle cx="10" cy="10" r="2" stroke="currentColor" stroke-width="1.3"/></svg></div>
+            <div class="uz-title">Survey Files</div>
+            <div class="uz-formats">DXF · CSV</div>
+            <div class="uz-cta">Drop or browse files</div>
+            <input type="file" style="display:none" multiple accept=".dxf,.csv,.dwg" />
+          </div>
+          <div class="upload-zone" data-type="building">
+            <div class="uz-icon"><svg viewBox="0 0 20 20" fill="none"><rect x="3" y="9" width="14" height="9" stroke="currentColor" stroke-width="1.3"/><path d="M1 9l9-7 9 7" stroke="currentColor" stroke-width="1.3"/><rect x="7" y="13" width="6" height="5" stroke="currentColor" stroke-width="1.3"/></svg></div>
+            <div class="uz-title">Building Plans</div>
+            <div class="uz-formats">PDF · DXF</div>
+            <div class="uz-cta">Drop or browse files</div>
+            <input type="file" style="display:none" multiple accept=".pdf,.dxf,.dwg,.ifc" />
+          </div>
+          <div class="upload-zone" data-type="imagery">
+            <div class="uz-icon"><svg viewBox="0 0 20 20" fill="none"><rect x="2" y="4" width="16" height="12" rx="1.5" stroke="currentColor" stroke-width="1.3"/><circle cx="7" cy="9" r="2" stroke="currentColor" stroke-width="1.3"/><path d="M12 7l4 5H4l4-4 2 2 2-3z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg></div>
+            <div class="uz-title">Drone / Aerial Imagery</div>
+            <div class="uz-formats">TIFF · Imagery</div>
+            <div class="uz-cta">Drop or browse files</div>
+            <input type="file" style="display:none" multiple accept=".tif,.tiff,.jpg,.png" />
+          </div>
+          <div class="upload-zone" data-type="survey_gcp">
+            <div class="uz-icon"><svg viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="3" stroke="currentColor" stroke-width="1.3"/><path d="M10 2v3M10 15v3M2 10h3M15 10h3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg></div>
+            <div class="uz-title">Ground Survey Data</div>
+            <div class="uz-formats">CSV · SHP</div>
+            <div class="uz-cta">Drop or browse files</div>
+            <input type="file" style="display:none" multiple accept=".csv,.shp" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Files table -->
+      <div class="files-table-card">
+        <div class="ft-header">
+          <div class="ft-title">
+            Uploaded files
+            <span class="ft-count" id="file-count-badge2">● 6 FILES · 330.7 MB</span>
+          </div>
+          <button class="btn btn-ghost" style="font-size:12px;padding:5px 10px">+ Add more files</button>
+        </div>
+        <table class="ft-table">
+          <thead>
+            <tr>
+              <th>FILE NAME</th>
+              <th>SOURCE TYPE</th>
+              <th>SIZE</th>
+              <th>CRS / STATUS</th>
+              <th>VALIDATION</th>
+              <th>PROGRESS</th>
+              <th>ACTIONS</th>
+            </tr>
+          </thead>
+          <tbody id="files-tbody">
+            <!-- Populated by JS -->
+          </tbody>
+        </table>
+        <div class="ft-footer">
+          <div class="ft-footer-note">
+            <svg viewBox="0 0 14 14" fill="none"><path d="M3 7l3 3 5-5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+            5 validated · 1 upload in progress · Source files remain immutable after processing
+          </div>
+          <button class="btn btn-teal" onclick="App.navigate('analysis')" style="font-size:13px;padding:8px 18px">
+            → Process Property Data
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       SCREEN 3: ANALYSIS / AI PROCESSING
+       ═══════════════════════════════════════════════════════════ -->
+  <div id="screen-analysis" class="screen">
+    <div class="page-header">
+      <div class="page-breadcrumb">
+        <span>EASTBANK RESIDENTIAL VERIFICATION</span>
+        <span class="sep">›</span>
+        <span style="color:var(--text-secondary)">AI PROCESSING</span>
+      </div>
+      <div class="page-title-row">
+        <div class="page-title-left">
+          <div class="page-title">
+            Extract, normalize &amp; reconstruct
+            <span class="pid-tag">NB-W4-0187-22</span>
+            <span class="pid-tag">17 Alder Court, Ward 4</span>
+          </div>
+        </div>
+        <div class="page-title-right">
+          <span class="badge badge-blue">PROCESSING · 86%</span>
+          <div class="jurisdiction-block">
+            <span class="jurisdiction-label">Jurisdiction</span>
+            <span class="jurisdiction-value">Northbridge Municipality</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Progress bar -->
+    <div class="analysis-progress-bar">
+      <div class="apb-dot"></div>
+      <div class="apb-text">Generating 3D property model</div>
+      <span class="apb-label">Reconstructing roof planes · 8 of 11 surfaces</span>
+      <span style="flex:1"></span>
+      <span class="apb-label">OVERALL</span>
+      <div class="apb-track"><div class="apb-fill" id="analysis-progress-fill" style="width:0%"></div></div>
+      <span class="apb-pct" id="analysis-progress-pct">0%</span>
+    </div>
+
+    <div class="analysis-body">
+      <!-- Pipeline sidebar -->
+      <div class="pipeline-sidebar">
+        <div class="ps-title">Analysis pipeline</div>
+        <div class="ps-sub">7 deterministic stages · trace enabled</div>
+        <div class="pipeline-list">
+          <div class="pipeline-item">
+            <div class="pi-node done"><svg viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="currentColor" stroke-width="1.5"/></svg></div>
+            <div class="pi-info"><div class="pi-label">Document extraction</div><div class="pi-state done">Complete</div><div class="pi-time">00:18</div></div>
+          </div>
+          <div class="pipeline-item">
+            <div class="pi-node done"><svg viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="currentColor" stroke-width="1.5"/></svg></div>
+            <div class="pi-info"><div class="pi-label">Coordinate normalization</div><div class="pi-state done">Complete</div><div class="pi-time">00:06</div></div>
+          </div>
+          <div class="pipeline-item">
+            <div class="pi-node done"><svg viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="currentColor" stroke-width="1.5"/></svg></div>
+            <div class="pi-info"><div class="pi-label">Parcel topology</div><div class="pi-state done">Complete</div><div class="pi-time">00:12</div></div>
+          </div>
+          <div class="pipeline-item">
+            <div class="pi-node done"><svg viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="currentColor" stroke-width="1.5"/></svg></div>
+            <div class="pi-info"><div class="pi-label">Building footprint detection</div><div class="pi-state done">Complete</div><div class="pi-time">00:24</div></div>
+          </div>
+          <div class="pipeline-item">
+            <div class="pi-node done"><svg viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="currentColor" stroke-width="1.5"/></svg></div>
+            <div class="pi-info"><div class="pi-label">Elevation reconstruction</div><div class="pi-state done">Complete</div><div class="pi-time">01:08</div></div>
+          </div>
+          <div class="pipeline-item">
+            <div class="pi-node running"><svg viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="2" fill="currentColor"/></svg></div>
+            <div class="pi-info"><div class="pi-label">3D model generation</div><div class="pi-state running">Running · 86%</div><div class="pi-time">02:16</div></div>
+          </div>
+          <div class="pipeline-item">
+            <div class="pi-node queued"><svg viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="4" stroke="currentColor" stroke-width="1.2"/></svg></div>
+            <div class="pi-info"><div class="pi-label">Spatial conflict analysis</div><div class="pi-state queued">Queued</div><div class="pi-time">—</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Map area -->
+      <div class="analysis-map-area">
+        <canvas id="canvas-analysis"></canvas>
+        <div class="map-overlay-label">
+          <span class="mol-title">Normalised parcel &amp; footprint</span>
+          <span class="mol-coords">EPSG:32643 · WGS 83 · WGS 83 / UTM 43N · RMS 0.06 m</span>
+        </div>
+        <!-- Zoom buttons overlaid -->
+        <div style="position:absolute;top:48px;right:10px;display:flex;flex-direction:column;gap:1px;z-index:10">
+          <button class="vp-zoom-btn" data-scene="analysis" data-dir="in">+</button>
+          <button class="vp-zoom-btn" data-scene="analysis" data-dir="out">−</button>
+          <button class="vp-zoom-btn" data-scene="analysis">
+            <svg viewBox="0 0 14 14" fill="none" style="width:12px;height:12px"><path d="M2 7a5 5 0 100 0V5M2 5l2-2-2-2" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+          </button>
+          <button class="vp-zoom-btn">
+            <svg viewBox="0 0 14 14" fill="none" style="width:12px;height:12px"><path d="M1 5V2h3M10 2h3v3M1 9v3h3M10 12h3v-3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+          </button>
+        </div>
+        <!-- Scale + legend -->
+        <div style="position:absolute;bottom:10px;right:10px;display:flex;flex-direction:column;gap:6px;align-items:flex-end">
+          <div class="vp-legend">
+            <div class="legend-item"><div class="legend-line" style="background:#00b4a0"></div>LEGAL PARCEL</div>
+            <div class="legend-item"><div class="legend-line" style="background:#4a8070"></div>DETECTED FOOTPRINT</div>
+          </div>
+          <div class="vp-scale-bar">
+            <div class="scale-rule"><div class="scale-rule-track"><div class="s1"></div><div class="s2"></div><div class="s3"></div></div></div>
+            <div class="scale-labels"><span>0</span><span>5</span><span>10 m</span></div>
+          </div>
+        </div>
+        <!-- North indicator -->
+        <div style="position:absolute;bottom:14px;left:14px;font-size:11px;color:rgba(255,255,255,0.5);display:flex;align-items:center;gap:4px">
+          <svg viewBox="0 0 16 16" fill="none" width="14" height="14"><path d="M8 2v12M5 5l3-3 3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>N
+        </div>
+      </div>
+
+      <!-- Right panel -->
+      <div class="analysis-right">
+        <div class="ar-section">
+          <div class="ar-section-label">
+            ACTIVE SOURCE EVIDENCE
+            <span class="badge badge-teal" style="font-size:10px">● 6 SOURCES</span>
+          </div>
+          <div class="ar-sources-row">
+            <div class="ar-source-thumb active">
+              <div style="width:100%;height:100%;background:linear-gradient(135deg,#1a2a3a,#2a3a50);display:flex;align-items:center;justify-content:center">
+                <svg viewBox="0 0 24 24" fill="none" width="20" height="20"><path d="M4 2h10l4 4v14a2 2 0 01-2 2H4a2 2 0 01-2-2V4a2 2 0 012-2z" stroke="#4a6a8a" stroke-width="1.2"/></svg>
+              </div>
+              <div class="thumb-label">DEED</div>
+            </div>
+            <div class="ar-source-thumb">
+              <div style="width:100%;height:100%;background:linear-gradient(135deg,#1a3a2a,#2a5a3a);display:flex;align-items:center;justify-content:center">
+                <svg viewBox="0 0 24 24" fill="none" width="20" height="20"><rect x="2" y="2" width="20" height="20" rx="2" stroke="#4a8a6a" stroke-width="1.2"/><path d="M2 9h20M9 2v20" stroke="#4a8a6a" stroke-width="1.2"/></svg>
+              </div>
+              <div class="thumb-label">SURVEY</div>
+            </div>
+            <div class="ar-source-thumb">
+              <div style="width:100%;height:100%;background:linear-gradient(135deg,#1a2820,#253828);display:flex;align-items:center;justify-content:center">
+                <svg viewBox="0 0 24 24" fill="none" width="20" height="20"><rect x="2" y="4" width="20" height="16" rx="1.5" stroke="#5a8060" stroke-width="1.2"/><circle cx="8" cy="11" r="3" stroke="#5a8060" stroke-width="1.2"/><path d="M14 8l6 8H4l5-5 3 3 2-6z" stroke="#5a8060" stroke-width="1.2" stroke-linejoin="round"/></svg>
+              </div>
+              <div class="thumb-label">AERIAL</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="ar-section" style="flex:1;overflow-y:auto">
+          <div class="ar-section-label">
+            EXTRACTED LEGAL FIELDS
+            <span style="color:var(--green-500);font-size:11px">● 98.2% MEAN</span>
+          </div>
+          <div class="ar-fields">
+            <div class="ar-field-row">
+              <span class="ar-field-label">Parcel ID</span>
+              <div style="display:flex;align-items:center">
+                <span class="ar-field-value">NB-W4-0187-22</span>
+                <span class="ar-field-conf">● 99.8%</span>
+              </div>
+            </div>
+            <div class="ar-field-row">
+              <span class="ar-field-label">Registered area</span>
+              <div style="display:flex;align-items:center">
+                <span class="ar-field-value">842.6 m²</span>
+                <span class="ar-field-conf">● 99.4%</span>
+              </div>
+            </div>
+            <div class="ar-field-row">
+              <span class="ar-field-label">Owner record</span>
+              <div style="display:flex;align-items:center">
+                <span class="ar-field-value">Mira &amp; Dev Khanna</span>
+                <span class="ar-field-conf">● 97.1%</span>
+              </div>
+            </div>
+            <div class="ar-field-row">
+              <span class="ar-field-label">Land use</span>
+              <div style="display:flex;align-items:center">
+                <span class="ar-field-value">Residential R2</span>
+                <span class="ar-field-conf">● 99.0%</span>
+              </div>
+            </div>
+            <div class="ar-field-row">
+              <span class="ar-field-label">Survey date</span>
+              <div style="display:flex;align-items:center">
+                <span class="ar-field-value">18 Sep 2026</span>
+                <span class="ar-field-conf">● 98.8%</span>
+              </div>
+            </div>
+            <div class="ar-field-row">
+              <span class="ar-field-label">Building footprint</span>
+              <div style="display:flex;align-items:center">
+                <span class="ar-field-value">214.8 m²</span>
+                <span class="ar-field-conf">● 94.6%</span>
+              </div>
+            </div>
+          </div>
+          <div class="ar-warning-box" style="margin-top:10px">
+            <svg viewBox="0 0 14 14" fill="none"><path d="M7 3l5 9H2l5-9z" stroke="currentColor" stroke-width="1.2"/><path d="M7 7v2M7 10.5h.01" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+            GCP-04 vertical residual is 0.16m, above preferred 0.10m. Horizontal parcel alignment is unaffected.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Audit trail -->
+    <div class="audit-trail">
+      <div class="at-header">
+        <span class="at-title">Live audit trail</span>
+        <span class="badge badge-teal" style="font-size:10px">● EVENT CHAIN VERIFIED · SHA-256</span>
+      </div>
+      <div class="at-rows">
+        <div class="at-row"><span class="at-time">14:37:04</span><span class="at-service">Ingestion service</span><span class="at-event">6 sources registered; immutable hashes recorded</span><span class="at-status">RECORDED</span></div>
+        <div class="at-row"><span class="at-time">14:37:22</span><span class="at-service">Document extraction</span><span class="at-event">Title deed and survey schedule parsed · 98.2% mean confidence</span><span class="at-status">RECORDED</span></div>
+        <div class="at-row"><span class="at-time">14:37:40</span><span class="at-service">CRS engine</span><span class="at-event">DXF local grid transformed to EPSG:32643 · RMS 0.06 m</span><span class="at-status">RECORDED</span></div>
+        <div class="at-row"><span class="at-time">14:38:11</span><span class="at-service">Topology engine</span><span class="at-event">Parcel ring closed; 8 vertices; 0 self-intersections</span><span class="at-status">RECORDED</span></div>
+        <div class="at-row"><span class="at-time">14:39:48</span><span class="at-service">Reconstruction engine</span><span class="at-event">LOD2 roof geometry generated from aerial + building plan</span><span class="at-status">RECORDED</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       SCREEN 4: VERIFICATION / MOVE BUILDING
+       ═══════════════════════════════════════════════════════════ -->
+  <div id="screen-verify" class="screen">
+    <div class="page-header">
+      <div class="page-breadcrumb">
+        <span>EASTBANK RESIDENTIAL VERIFICATION</span>
+        <span class="sep">›</span>
+        <span style="color:var(--text-secondary)">3D VERIFICATION</span>
+      </div>
+      <div class="page-title-row">
+        <div class="page-title-left">
+          <div class="page-title">
+            Verify parcel geometry
+            <span class="pid-tag">NB-W4-0187-22</span>
+            <span class="pid-tag">17 Alder Court, Ward 4</span>
+          </div>
+        </div>
+        <div class="page-title-right">
+          <span class="badge badge-red">CONFLICT DETECTED</span>
+          <div class="jurisdiction-block">
+            <span class="jurisdiction-label">Jurisdiction</span>
+            <span class="jurisdiction-value">Northbridge Municipality</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="verify-toolbar">
+      <div class="vtb-group">
+        <button class="vtb-btn" id="vtb-rose" onclick="setVtb('rose')">Rose</button>
+        <button class="vtb-btn" id="vtb-inspect" onclick="setVtb('inspect')">Inspect</button>
+        <button class="vtb-btn active" id="vtb-move" onclick="setVtb('move')">
+          <svg viewBox="0 0 16 16" fill="none"><path d="M8 2v12M2 8h12M5 5l-3 3 3 3M11 5l3 3-3 3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+          Move Building
+        </button>
+        <button class="vtb-btn" id="vtb-measure" onclick="setVtb('measure')">Measure</button>
+      </div>
+      <div class="vtb-sep"></div>
+      <span class="vtb-camera-label">CAMERA</span>
+      <div class="vtb-group">
+        <button class="vtb-btn active vp-cam-btn" data-scene="verify" data-view="perspective" id="cam-persp">Perspective</button>
+        <button class="vtb-btn vp-cam-btn" data-scene="verify" data-view="top" id="cam-top">Top</button>
+        <button class="vtb-btn vp-cam-btn" data-scene="verify" data-view="north" id="cam-north">North</button>
+        <button class="vtb-btn vp-cam-btn" data-scene="verify" data-view="west" id="cam-west">West</button>
+      </div>
+      <div style="flex:1"></div>
+      <span style="font-size:11px;color:var(--text-muted);font-family:var(--font-mono)">AZ 222.4° &nbsp; 1:386 &nbsp; EL +44.2°</span>
+    </div>
+
+    <div class="verify-body">
+      <!-- Left panel -->
+      <div class="verify-left-panel">
+        <div class="vlp-section">
+          <div class="vlp-section-title">PROPERTY RECORD</div>
+          <div class="vlp-prop-name">17 Alder Court, Ward 4</div>
+          <div class="vlp-prop-id">NB-W4-0187-22</div>
+          <div class="vlp-metric"><span class="vlp-metric-label">Parcel area</span><span class="vlp-metric-value">842.6 m²</span></div>
+          <div class="vlp-metric"><span class="vlp-metric-label">Building</span><span class="vlp-metric-value">214.8 m²</span></div>
+          <div class="vlp-metric"><span class="vlp-metric-label">CRS</span><span class="vlp-metric-value" style="font-size:10px">EPSG:32643</span></div>
+        </div>
+
+        <div class="vlp-section">
+          <div class="vlp-section-title">SOURCE ALIGNMENT</div>
+          <div class="source-item">
+            <div class="source-item-dot" style="background:var(--teal-500)"></div>
+            <div class="source-item-info">
+              <div class="source-item-name">Legal parcel</div>
+              <div class="source-item-file">ward4_cadastral_2026.geojson</div>
+            </div>
+          </div>
+          <div class="source-item">
+            <div class="source-item-dot" style="background:var(--teal-500)"></div>
+            <div class="source-item-info">
+              <div class="source-item-name">Survey boundary</div>
+              <div class="source-item-file">alder_ct_boundary_final.shp</div>
+            </div>
+          </div>
+          <div class="source-item">
+            <div class="source-item-dot" style="background:var(--teal-500)"></div>
+            <div class="source-item-info">
+              <div class="source-item-name">Building plan</div>
+              <div class="source-item-file">building_plan_revC.dxf</div>
+            </div>
+          </div>
+          <div class="source-item">
+            <div class="source-item-dot" style="background:var(--teal-500)"></div>
+            <div class="source-item-info">
+              <div class="source-item-name">Aerial orthomosaic</div>
+              <div class="source-item-file">flight_20260918_ortho.tif</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="vlp-section">
+          <div class="vlp-section-title">VIEWPORT LAYERS <span style="float:right;cursor:pointer">⊞</span></div>
+          <div class="layer-toggle-item">
+            <label class="toggle"><input type="checkbox" checked /><span class="toggle-slider"></span></label>
+            <span>Parcel boundary</span>
+          </div>
+          <div class="layer-toggle-item">
+            <label class="toggle"><input type="checkbox" checked /><span class="toggle-slider"></span></label>
+            <span>Setback (1.5 m)</span>
+          </div>
+          <div class="layer-toggle-item">
+            <label class="toggle"><input type="checkbox" checked /><span class="toggle-slider"></span></label>
+            <span>Surveyed footprint</span>
+          </div>
+          <div class="layer-toggle-item">
+            <label class="toggle"><input type="checkbox" checked /><span class="toggle-slider"></span></label>
+            <span>Reconstructed building</span>
+          </div>
+          <div class="layer-toggle-item">
+            <label class="toggle"><input type="checkbox" checked /><span class="toggle-slider"></span></label>
+            <span>Terrain</span>
+          </div>
+          <div class="layer-toggle-item">
+            <label class="toggle"><input type="checkbox" /><span class="toggle-slider"></span></label>
+            <span>Imagery</span>
+          </div>
+          <div class="layer-toggle-item">
+            <label class="toggle"><input type="checkbox" checked /><span class="toggle-slider"></span></label>
+            <span>Conflict zones</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main viewport -->
+      <div class="verify-viewport-area">
+        <canvas id="canvas-verify"></canvas>
+
+        <!-- Mini overview -->
+        <div class="mini-overview">
+          <div style="width:100%;height:100%;background:#0a1020;display:flex;align-items:center;justify-content:center;position:relative">
+            <!-- Simple mini map SVG -->
+            <svg viewBox="0 0 120 90" width="120" height="90" style="position:absolute;inset:0">
+              <rect x="0" y="0" width="120" height="90" fill="#0a1020"/>
+              <rect x="10" y="8" width="100" height="74" fill="#121c2c"/>
+              <!-- parcel -->
+              <rect x="40" y="20" width="40" height="50" fill="none" stroke="#00b4a0" stroke-width="1.5"/>
+              <rect x="40" y="20" width="40" height="50" fill="rgba(0,180,160,0.08)"/>
+              <!-- building -->
+              <rect x="50" y="28" width="20" height="26" fill="rgba(255,255,255,0.15)" stroke="rgba(255,255,255,0.3)" stroke-width="1"/>
+              <!-- conflict zone -->
+              <rect x="38" y="32" width="4" height="16" fill="rgba(239,68,68,0.5)" stroke="#ef4444" stroke-width="1"/>
+              <!-- camera indicator -->
+              <circle cx="100" cy="75" r="3" fill="rgba(255,255,255,0.4)"/>
+              <line x1="100" y1="75" x2="60" y2="45" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
+            </svg>
+            <div class="mini-overview-label">OVERVIEW · 1:75M</div>
+          </div>
+        </div>
+
+        <!-- Conflict badge overlay -->
+        <div class="conflict-warning-badge">
+          <svg viewBox="0 0 16 16" fill="none"><path d="M8 3l6 10H2L8 3z" stroke="currentColor" stroke-width="1.5"/><path d="M8 7v3M8 12h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          WEST EDGE — 6.4 m² OUTSIDE PARCEL
+        </div>
+
+        <!-- Zoom + controls -->
+        <div style="position:absolute;top:10px;right:10px;display:flex;flex-direction:column;gap:1px;z-index:10">
+          <button class="vp-zoom-btn" data-scene="verify" data-dir="in">+</button>
+          <button class="vp-zoom-btn" data-scene="verify" data-dir="out">−</button>
+          <button class="vp-zoom-btn" title="Reset view">
+            <svg viewBox="0 0 14 14" fill="none" style="width:12px;height:12px"><path d="M2 7a5 5 0 100 0V5M2 5l2-2-2-2" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+          </button>
+          <button class="vp-zoom-btn">
+            <svg viewBox="0 0 14 14" fill="none" style="width:12px;height:12px"><path d="M1 5V2h3M10 2h3v3M1 9v3h3M10 12h3v-3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+          </button>
+        </div>
+
+        <!-- Coords HUD -->
+        <div style="position:absolute;bottom:10px;left:10px;font-size:10px;color:rgba(255,255,255,0.4);font-family:var(--font-mono)">
+          E 437 218.406 &nbsp; N 2 113 904.082 &nbsp; Z +44.28 m
+        </div>
+        <!-- Scale -->
+        <div style="position:absolute;bottom:10px;left:50%;transform:translateX(-50%)">
+          <div class="vp-scale-bar">
+            <div style="display:flex;align-items:center;gap:4px"><svg viewBox="0 0 12 12" fill="none" width="10" height="10"><path d="M6 1v9M3 4l3-3 3 3" stroke="rgba(255,255,255,0.5)" stroke-width="1.3" stroke-linecap="round"/></svg><span style="font-size:10px;color:rgba(255,255,255,0.4)">N</span></div>
+            <div class="scale-rule"><div class="scale-rule-track"><div class="s1"></div><div class="s2"></div><div class="s3"></div></div></div>
+            <div class="scale-labels"><span>0</span><span>5</span><span>10 m</span></div>
+          </div>
+        </div>
+        <div style="position:absolute;bottom:6px;right:10px;font-size:9px;color:rgba(255,255,255,0.25)">Model 1002 · Positional uncertainty ±0.11 m</div>
+      </div>
+
+      <!-- Right panel -->
+      <div class="verify-right-panel">
+        <div class="vrp-section">
+          <div class="vrp-section-title">
+            Move Building
+            <span class="badge badge-teal" style="font-size:10px">● VERIFICATION MODE</span>
+          </div>
+          <p style="font-size:11px;color:var(--text-secondary);margin-bottom:12px;line-height:1.5">
+            Translate the reconstructed model to test alignment against the surveyed footprint.
+          </p>
+          <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">CURRENT TRANSFORM</div>
+          <div class="transform-row">
+            <label>X translation</label>
+            <button class="t-btn" onclick="App.adjustTransform('x', -0.01)">−</button>
+            <span class="transform-val" id="tx-val">−0.62 m</span>
+            <button class="t-btn" onclick="App.adjustTransform('x', 0.01)">+</button>
+          </div>
+          <div class="transform-row">
+            <label>Y translation</label>
+            <button class="t-btn" onclick="App.adjustTransform('y', -0.01)">−</button>
+            <span class="transform-val" id="ty-val">+0.14 m</span>
+            <button class="t-btn" onclick="App.adjustTransform('y', 0.01)">+</button>
+          </div>
+          <div class="transform-row">
+            <label>Rotation</label>
+            <button class="t-btn" onclick="App.adjustTransform('rot', -0.1)">−</button>
+            <span class="transform-val" id="tr-val">−0.8°</span>
+            <button class="t-btn" onclick="App.adjustTransform('rot', 0.1)">+</button>
+          </div>
+          <div class="vrp-btn-row">
+            <button class="btn btn-ghost" style="font-size:12px">↺ Reset</button>
+            <button class="btn btn-teal" style="font-size:12px">⦿ Snap to Survey</button>
+          </div>
+        </div>
+
+        <div class="vrp-section">
+          <div class="vrp-section-title">BEFORE / CURRENT POSITION</div>
+          <div class="conflict-metrics-grid">
+            <div class="cm-cell">
+              <div class="cm-cell-label">BEFORE OVERLAP</div>
+              <div class="cm-cell-value danger">9.8 m²</div>
+              <div style="display:flex;align-items:center;gap:3px;margin-top:2px"><span style="font-size:12px;color:var(--text-muted)">→</span></div>
+            </div>
+            <div class="cm-cell">
+              <div class="cm-cell-label">CURRENT OVERLAP</div>
+              <div class="cm-cell-value danger">6.4 m²</div>
+            </div>
+          </div>
+          <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px">Maximum encroachment depth &nbsp; <strong style="color:var(--red-500)">0.82 m</strong></div>
+        </div>
+
+        <div class="vrp-section" style="flex:1">
+          <div class="vrp-section-title">GEOMETRY ASSESSMENT</div>
+          <div class="ga-conflict-badge"><span>● 1 CONFLICT</span></div>
+          <div class="geometry-assess">
+            Reconstructed west façade crosses legal parcel segment V7–V8. Surveyed footprint independently corroborates the offset.
+          </div>
+          <div class="compliance-legend">
+            <div class="cl-item"><div class="cl-dot" style="background:var(--teal-500)"></div>COMPLIANT</div>
+            <div class="cl-item"><div class="cl-dot" style="background:var(--red-500)"></div>OUTSIDE PARCEL</div>
+          </div>
+          <div style="font-size:11px;color:var(--amber-400);background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);border-radius:var(--r-md);padding:8px;margin-top:10px;line-height:1.5">
+            ⓘ Adjustment is for visual verification only. Legal boundaries, survey observations, and source data are never altered.
+          </div>
+        </div>
+
+        <div class="vrp-cta">
+          <button class="btn btn-danger" onclick="App.navigate('conflict')" style="width:100%;justify-content:center;padding:11px;font-size:13px">
+            → Review Spatial Conflict
+          </button>
+        </div>
+        <div style="padding:8px 16px;font-size:10px;color:var(--text-muted);border-top:1px solid var(--border-subtle)">
+          Visual verification session · Source records locked
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       SCREEN 5: CONFLICT REVIEW
+       ═══════════════════════════════════════════════════════════ -->
+  <div id="screen-conflict" class="screen">
+    <div class="page-header">
+      <div class="page-breadcrumb">
+        <span>EASTBANK RESIDENTIAL VERIFICATION</span>
+        <span class="sep">›</span>
+        <span style="color:var(--text-secondary)">CONFLICT REVIEW</span>
+      </div>
+      <div class="page-title-row">
+        <div class="page-title-left">
+          <div class="page-title">
+            Spatial evidence &amp; disposition
+            <span class="pid-tag">NB-W4-0187-22</span>
+            <span class="pid-tag">17 Alder Court, Ward 4</span>
+          </div>
+        </div>
+        <div class="page-title-right">
+          <span class="badge badge-red">● 1 HIGH-SEVERITY CONFLICT</span>
+          <div class="jurisdiction-block">
+            <span class="jurisdiction-label">Jurisdiction</span>
+            <span class="jurisdiction-value">Northbridge Municipality</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="conflict-body">
+      <!-- Left panel -->
+      <div class="conflict-left-panel">
+        <div class="clp-section">
+          <div class="clp-section-title">
+            Detected issues
+            <span class="badge badge-red" style="font-size:10px">● 3 TOTAL</span>
+          </div>
+          <div class="conflict-issue-card active" data-id="CF-01" onclick="App.selectConflictIssue('CF-01')">
+            <div class="cic-id">CF-01 <span class="badge badge-red" style="font-size:10px;float:right">HIGH</span></div>
+            <div class="cic-title">Building encroachment</div>
+            <div class="cic-detail">West edge V7–V8</div>
+            <div class="cic-area">6.4 m²</div>
+          </div>
+          <div class="conflict-issue-card" data-id="CF-02" onclick="App.selectConflictIssue('CF-02')">
+            <div class="cic-id">CF-02 <span class="badge badge-amber" style="font-size:10px;float:right">MEDIUM</span></div>
+            <div class="cic-title">Setback non-compliance</div>
+            <div class="cic-detail">North façade</div>
+            <div class="cic-area" style="color:var(--amber-500)">0.34 m</div>
+          </div>
+          <div class="conflict-issue-card" data-id="OBS-03" onclick="App.selectConflictIssue('OBS-03')">
+            <div class="cic-id">OBS-03 <span class="badge badge-gray" style="font-size:10px;float:right">LOW</span></div>
+            <div class="cic-title">GCP vertical residual</div>
+            <div class="cic-detail">Control point DCP-04</div>
+            <div class="cic-area" style="color:var(--text-secondary)">0.14 m</div>
+          </div>
+        </div>
+
+        <div class="clp-section">
+          <div class="clp-section-title">EVIDENCE BASIS</div>
+          <div class="evidence-item">
+            <div class="evidence-item-label">Survey boundary</div>
+            <div style="font-size:10px;color:var(--text-muted)">Priority · 1/4</div>
+          </div>
+          <div class="evidence-item">
+            <div class="evidence-item-label">Cadastral record</div>
+            <div style="font-size:10px;color:var(--text-muted)">Priority · 2/4</div>
+          </div>
+          <div class="evidence-item">
+            <div class="evidence-item-label">2026 orthomosaic</div>
+            <div style="font-size:10px;color:var(--text-muted)">Priority · 3/4</div>
+          </div>
+          <div class="evidence-item">
+            <div class="evidence-item-label">Building plan Rev C</div>
+            <div style="font-size:10px;color:var(--text-muted)">Documenting</div>
+          </div>
+        </div>
+
+        <div class="clp-section" style="flex:1">
+          <div class="clp-section-title">REVIEW STANDARD</div>
+          <div style="font-size:11px;color:var(--text-secondary);line-height:1.5">
+            Northbridge Land Verification Rule 12.4(b): built area crossing a registered parcel edge requires field disposition.
+          </div>
+        </div>
+      </div>
+
+      <!-- Main area -->
+      <div class="conflict-main-area">
+        <div style="padding:10px 10px 0;font-size:13px;font-weight:600;color:var(--text-primary)">
+          CF-01 · Building encroachment
+          <span style="font-size:11px;color:var(--text-muted);font-weight:400;margin-left:8px">WEST PARCEL EDGE · SEGMENT V7–V8 · SYNCHRONISED CAMERA</span>
+          <span style="float:right;font-size:11px;color:var(--teal-500)">⇄ Views synchronised</span>
+        </div>
+        <div class="conflict-views-row">
+          <!-- 3D evidence view -->
+          <div class="conflict-view-panel">
+            <canvas id="canvas-conflict-3d"></canvas>
+            <div class="cvp-label">
+              3D EVIDENCE
+              <div class="cvp-conflict-badge">● CONFLICT ISOLATED</div>
+            </div>
+            <!-- Dimension annotation -->
+            <div style="position:absolute;bottom:50%;right:40%;transform:translate(50%,50%);pointer-events:none;z-index:5">
+              <div style="background:rgba(239,68,68,0.9);color:#fff;font-size:11px;font-weight:700;padding:4px 8px;border-radius:4px;white-space:nowrap">
+                0.82 m<br><span style="font-size:9px;font-weight:400">MAX DEPTH</span>
+              </div>
+            </div>
+            <!-- North + scale -->
+            <div style="position:absolute;bottom:8px;left:8px;display:flex;flex-direction:column;gap:3px">
+              <div style="font-size:10px;color:rgba(255,255,255,0.5);display:flex;align-items:center;gap:3px">
+                <svg viewBox="0 0 12 12" fill="none" width="10" height="10"><path d="M6 1v9M3 4l3-3 3 3" stroke="rgba(255,255,255,0.5)" stroke-width="1.3" stroke-linecap="round"/></svg>N
+              </div>
+              <div class="scale-rule"><div class="scale-rule-track" style="width:60px"><div class="s1"></div><div class="s2"></div><div class="s3"></div></div></div>
+              <div style="display:flex;justify-content:space-between;width:62px;font-size:9px;color:rgba(255,255,255,0.4)"><span>0</span><span>5</span><span>10 m</span></div>
+            </div>
+          </div>
+
+          <!-- 2D plan view -->
+          <div class="conflict-view-panel">
+            <canvas id="canvas-conflict-2d" width="500" height="400" style="width:100%;height:100%"></canvas>
+            <div class="cvp-label">PLAN EVIDENCE · 1:150 &nbsp; SEGMENT V7–V8</div>
+            <div style="position:absolute;top:8px;right:8px;font-size:10px;color:rgba(255,255,255,0.4)">N ↑</div>
+          </div>
+        </div>
+
+        <!-- Stats bar -->
+        <div class="conflict-stats-bar">
+          <div class="csb-cell">
+            <div class="csb-label">OVERLAP AREA</div>
+            <div class="csb-value danger">6.4 m²</div>
+          </div>
+          <div class="csb-cell">
+            <div class="csb-label">MAXIMUM DEPTH</div>
+            <div class="csb-value danger">0.82 m</div>
+          </div>
+          <div class="csb-cell">
+            <div class="csb-label">AFFECTED EDGE</div>
+            <div class="csb-value normal" style="font-size:13px">V7–V8 · 12.64 m</div>
+          </div>
+          <div class="csb-cell">
+            <div class="csb-label">MODEL CONFIDENCE</div>
+            <div class="csb-value normal">94.6%</div>
+          </div>
+          <div class="csb-cell">
+            <div class="csb-label">ALIGNMENT RMS</div>
+            <div class="csb-value normal">0.06 m</div>
+          </div>
+        </div>
+
+        <!-- Explanation bar -->
+        <div class="conflict-explanation-bar">
+          <div class="ce-section">
+            <div class="ce-section-title">
+              <svg viewBox="0 0 14 14" fill="none"><path d="M7 3l5 9H2l5-9z" stroke="currentColor" stroke-width="1.2"/><path d="M7 7v2M7 11h.01" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+              Discrepancy explanation
+            </div>
+            <div class="ce-text">
+              The west wall is consistently offset beyond the deed parcel and 2026 ground survey. The building plan shows the intended wall 0.75m east; available evidence suggests construction variance rather than a georeferencing error.
+            </div>
+          </div>
+          <div class="ce-section" style="max-width:220px;flex:0 0 220px">
+            <div class="ce-section-title">SOURCE REFERENCES</div>
+            <div class="ce-refs">
+              <div class="ce-ref">Deed Schedule B · page 4</div>
+              <div class="ce-ref">Survey SV-26-A41 · sheet 2</div>
+              <div class="ce-ref">Plan Rev C · grid A3-B4</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right panel -->
+      <div class="conflict-right-panel">
+        <div class="crp-section">
+          <div class="crp-section-title">OFFICIAL FINDING</div>
+          <div style="margin-bottom:8px"><span class="badge badge-red">● HIGH SEVERITY</span></div>
+          <div class="finding-text">
+            Built structure extends beyond the registered western parcel boundary.
+          </div>
+          <div class="finding-meta">CONFIDENCE 94.6% · 4 SOURCES</div>
+        </div>
+
+        <div class="crp-section">
+          <div class="crp-section-title">DEFENSIBILITY CHECKS</div>
+          <div class="defensibility-item">
+            <div class="di-icon"><svg viewBox="0 0 16 16" fill="none"><path d="M3 8l4 4 6-6" stroke="currentColor" stroke-width="1.5"/></svg></div>
+            <div class="di-text">Legal parcel topology verified</div>
+          </div>
+          <div class="defensibility-item">
+            <div class="di-icon"><svg viewBox="0 0 16 16" fill="none"><path d="M3 8l4 4 6-6" stroke="currentColor" stroke-width="1.5"/></svg></div>
+            <div class="di-text">Ground survey independently aligned</div>
+          </div>
+          <div class="defensibility-item">
+            <div class="di-icon"><svg viewBox="0 0 16 16" fill="none"><path d="M3 8l4 4 6-6" stroke="currentColor" stroke-width="1.5"/></svg></div>
+            <div class="di-text">Orthomosaic date within 30 days</div>
+          </div>
+          <div class="defensibility-item">
+            <div class="di-icon"><svg viewBox="0 0 16 16" fill="none"><path d="M3 8l4 4 6-6" stroke="currentColor" stroke-width="1.5"/></svg></div>
+            <div class="di-text">Building-plan variance corroborated</div>
+          </div>
+        </div>
+
+        <div class="crp-section" style="flex:1">
+          <div class="crp-section-title">COMMENTS &amp; NOTES</div>
+          <textarea class="notes-textarea" rows="5" placeholder="Survey and aerial evidence agree on the western offset. Request field verification of wall-to-boundary distance…">Survey and aerial evidence agree on the western offset. Request field verification of wall-to-boundary distance and check for any registered boundary agreement before final disposition.</textarea>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px">
+            <div class="notes-immutable">
+              <svg viewBox="0 0 12 12" fill="none"><rect x="2" y="5" width="8" height="7" rx="1" stroke="currentColor" stroke-width="1"/><path d="M4 5V4a2 2 0 014 0v1" stroke="currentColor" stroke-width="1"/></svg>
+              Notes become immutable when decision is submitted.
+            </div>
+            <span class="notes-limit">246 / 1000</span>
+          </div>
+        </div>
+
+        <div class="crp-actions">
+          <button class="btn btn-ghost" onclick="App.navigate('verify')" style="width:100%;justify-content:center">← Return to Adjustment</button>
+          <button class="btn btn-teal" style="width:100%;justify-content:center;padding:10px">
+            <svg viewBox="0 0 16 16" fill="none" width="14" height="14"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.3"/><path d="M5 8l2 2 4-4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+            Request Field Verification
+          </button>
+          <button class="btn btn-danger" style="width:100%;justify-content:center;padding:10px">
+            <svg viewBox="0 0 16 16" fill="none" width="14" height="14"><path d="M3 3l10 10M13 3L3 13" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+            Flag Property
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /#app -->
+
+<script src="js/three-scene.js"></script>
+<script src="js/app.js"></script>
+<script>
+// Toolbar helper (verify screen)
+function setVtb(id) {
+  document.querySelectorAll('.vtb-btn[id^="vtb-"]').forEach(b => b.classList.remove('active'));
+  const el = document.getElementById('vtb-' + id);
+  if (el) el.classList.add('active');
+}
+
+// Hide viewport loading once Three.js renders first frame
+window.addEventListener('load', () => {
+  setTimeout(() => {
+    const el = document.getElementById('vp-loading-dashboard');
+    if (el) { el.style.opacity = '0'; setTimeout(() => el.style.display = 'none', 500); }
+  }, 1200);
+});
+</script>
+</body>
+</html>
